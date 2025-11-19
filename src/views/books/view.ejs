@@ -1,0 +1,75 @@
+<%- include('../layout/layout-start', {title: title}) %>
+<%- include('../layout/menu') %>
+
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4"><%= title %></h1>
+    </div>
+</div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="row g-0">
+                    <!-- Колонка с изображением -->
+                    <div class="col-md-4">
+                        <img
+                                src="<%= '/images/book-cover.png' %>"
+                                class="img-fluid rounded-start h-100"
+                                alt="<%= book.title %>"
+                                style="object-fit: cover;"
+                        >
+                    </div>
+
+                    <!-- Колонка с информацией о книге -->
+                    <div class="col-md-8">
+                        <div class="card-body h-100 d-flex flex-column">
+                            <!-- Заголовок -->
+                            <h1 class="card-title h3 mb-3"><%= book.title %></h1>
+
+                            <!-- Автор -->
+                            <div class="mb-3">
+                                <h5 class="text-muted mb-1">Автор:</h5>
+                                <p class="card-text fs-5"><%= book.authors %></p>
+                            </div>
+
+                            <!-- Описание -->
+                            <div class="mb-4 flex-grow-1">
+                                <h5 class="text-muted mb-2">Описание:</h5>
+                                <p class="card-text"><%= book.description %></p>
+                            </div>
+
+                            <!-- Дополнительная информация (если есть) -->
+                            <% if (book.favorite) { %>
+                                <div class="mb-3">
+                                    <span class="badge bg-success">Избранная</span>
+                                </div>
+                            <% } %>
+
+                            <!-- Кнопки действий -->
+                            <div class="mt-auto">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="/books" class="btn btn-outline-secondary me-md-2">
+                                        ← Назад к списку
+                                    </a>
+                                    <form action="/books/delete/<%= book.id %>" method="POST" class="d-inline">
+                                        <button class="btn me-md-2 btn-danger">
+                                            <i class="fa fa-trash" aria-hidden="true"></i>
+                                            Удалить
+                                        </button>
+                                    </form>
+                                    <a href="/books/update/<%= book.id %>" class="btn btn-warning me-md-2">
+                                        ✏️ Редактировать
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<%- include('../layout/layout-end') %>

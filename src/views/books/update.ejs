@@ -1,0 +1,103 @@
+<%- include('../layout/layout-start', {title: title}) %>
+<%- include('../layout/menu') %>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Редактирование книги</h4>
+                </div>
+                <div class="card-body">
+                    <form action="/books/update/<%= book.id %>" method="POST">
+                        <!-- Название -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Название книги</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="title"
+                                    name="title"
+                                    value="<%= book.title %>"
+                                    required
+                            >
+                        </div>
+
+                        <!-- Автор -->
+                        <div class="mb-3">
+                            <label for="authors" class="form-label">Автор</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="authors"
+                                    name="authors"
+                                    value="<%= book.authors %>"
+                                    required
+                            >
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea
+                                    class="form-control"
+                                    id="description"
+                                    name="description"
+                                    rows="5"
+                            ><%= book.description %></textarea>
+                        </div>
+
+                        <!-- Обложка -->
+                        <div class="mb-3">
+                            <label for="fileCover" class="form-label">Ссылка на обложку</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="fileCover"
+                                    name="fileCover"
+                                    value="<%= book.fileCover || '' %>"
+                            >
+                        </div>
+
+                        <!-- Файл -->
+                        <div class="mb-3">
+                            <label for="fileName" class="form-label">Название файла</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="fileName"
+                                    name="fileName"
+                                    value="<%= book.fileName || '' %>"
+                            >
+                        </div>
+
+                        <!-- Избранное -->
+                        <div class="mb-3 form-check">
+                            <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    id="favorite"
+                                    name="favorite"
+                                    <%= book.favorite ? 'checked' : '' %>
+                            >
+                            <label class="form-check-label" for="favorite">
+                                Избранная книга
+                            </label>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex gap-2">
+                            <a href="/books" class="btn btn-outline-secondary me-md-2">
+                                ← Назад к списку
+                            </a>
+                            <a href="/books/<%= book.id %>" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../layout/layout-end') %>
