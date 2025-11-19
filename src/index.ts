@@ -16,7 +16,7 @@ app.use(ROUTER_PATHS.MAIN, indexRouter);
 app.use(BOOK_VIEW.BOOKS, booksRouter);
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views")); // важно указать полный путь
+app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname)));
 
 console.log(`Server is running on port ${PORT}`);
