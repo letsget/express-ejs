@@ -1,73 +1,97 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { library } from "../library";
 const router = Router();
+import { ROUTER_PATHS, BOOK_VIEW } from "../constants";
 import { v4 as uuid } from "uuid";
 import {
   errorPageMiddleware,
   resolveBookByIndex,
   handleAddNewBookMiddleware,
 } from "../middleware";
-router.get("/", (req, res) => {
-  res.render("index", {
+
+router.get(ROUTER_PATHS.MAIN, (request: Request, response: Response) => {
+  response.render(BOOK_VIEW.HOME, {
     title: "Библиотека",
     books: library,
   });
 });
-router.get("/create", (request, response) => {
-  response.render("books/create", {
+router.get(ROUTER_PATHS.CREATE, (request: Request, response: Response) => {
+  response.render(BOOK_VIEW.CREATE, {
     title: "Добавить новую книгу",
     book: request.body,
   });
 });
 
-router.post("/create", handleAddNewBookMiddleware, (request: any, response) => {
-  const newBook = {
-    id: uuid(),
-    ...request.newBook,
-  };
+router.post(
+  ROUTER_PATHS.CREATE,
+  handleAddNewBookMiddleware,
+  (request: Request, response: Response) => {
+    const {
+      locals: { newBook },
+    } = response;
 
-  library.push(newBook);
-  response.redirect("/");
-});
+    const bookToAdd = {
+      id: uuid(),
+      ...newBook,
+    };
+
+    library.push(bookToAdd);
+    response.redirect(ROUTER_PATHS.MAIN);
+  },
+);
 
 router.get(
-  "/:id",
+  `${ROUTER_PATHS.MAIN}:id`,
   [errorPageMiddleware, resolveBookByIndex],
-  (request: any, response: any) => {
-    response.render("books/view", {
-      title: library[request.bookIndex].title,
-      book: library[request.bookIndex],
+  (request: Request, response: Response) => {
+    const {
+      locals: { bookIndex },
+    } = response;
+
+    response.render(BOOK_VIEW.VIEW, {
+      title: library[bookIndex].title,
+      book: library[bookIndex],
     });
   },
 );
 
 router.get(
-  "/update/:id",
+  `${ROUTER_PATHS.UPDATE}/:id`,
   [errorPageMiddleware, resolveBookByIndex],
-  (request: any, response: any) => {
-    response.render("books/update", {
-      title: `Редактирование: ${library[request.bookIndex].title}`,
-      book: library[request.bookIndex],
+  (request: Request, response: Response) => {
+    const {
+      locals: { bookIndex },
+    } = response;
+
+    response.render(BOOK_VIEW.UPDATE, {
+      title: `Редактирование: ${library[bookIndex].title}`,
+      book: library[bookIndex],
     });
   },
 );
 
 router.post(
-  "/update/:id",
+  `${ROUTER_PATHS.UPDATE}/:id`,
   resolveBookByIndex,
   handleAddNewBookMiddleware,
-  (request: any, response: any) => {
+  (request: Request, response: Response) => {
     const { id } = request.params;
-    library[request.bookIndex] = { id, ...request.newBook };
-    console.log("we need it", library[request.bookIndex]);
-    response.redirect(`/books/${id}`);
+    const {
+      locals: { bookIndex, newBook },
+    } = response;
+    library[bookIndex] = { id, ...newBook };
+    response.redirect(`${BOOK_VIEW.BOOKS}/${id}`);
   },
 );
 
-router.post("/delete/:id", resolveBookByIndex, (request: any, response) => {
-  library.splice(request.bookIndex, 1);
+router.post(
+  `${ROUTER_PATHS.DELETE}/:id`,
+  resolveBookByIndex,
+  (request: Request, response: Response) => {
+    library.splice(response.locals.bookIndex, 1);
 
-  response.redirect("/");
-});
+    response.redirect(ROUTER_PATHS.MAIN);
+  },
+);
 
 export default router;

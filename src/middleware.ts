@@ -16,13 +16,12 @@ export const errorPageMiddleware = (
       title: "Страницы с такой книгой не существует",
     });
   }
-  // @ts-ignore
-  request.foundBook = foundBook;
+  response.locals.foundBook = foundBook;
   next();
 };
 
 export const handleAddNewBookMiddleware = (
-  request: any,
+  request: Request,
   response: Response,
   next: NextFunction,
 ) => {
@@ -36,7 +35,7 @@ export const handleAddNewBookMiddleware = (
     fileName,
     fileBook,
   } = body;
-  request.newBook = {
+  response.locals.newBook = {
     title,
     description,
     authors,
@@ -49,7 +48,7 @@ export const handleAddNewBookMiddleware = (
 };
 
 export const resolveBookByIndex = (
-  request: any,
+  request: Request,
   response: Response,
   next: NextFunction,
 ) => {
@@ -65,6 +64,6 @@ export const resolveBookByIndex = (
       .json({ error: `Книга с id ${id} не найдена в библиотеке` });
   }
 
-  request.bookIndex = bookIndex;
+  response.locals.bookIndex = bookIndex;
   next();
 };
