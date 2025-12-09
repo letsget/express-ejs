@@ -83,7 +83,7 @@ export class CommentService {
     socket.emit("new-comment", comment);
   }
 
-  getComments(bookId: string): any[] {
+  getComments(bookId: string): TComment[] {
     return commentsByBook.get(bookId) || [];
   }
 }

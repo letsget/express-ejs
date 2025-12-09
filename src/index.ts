@@ -11,7 +11,6 @@ const PORT = 8000;
 const app = express();
 
 const server = createServer(app);
-// Правильная настройка Socket.io
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:8000", // или "*" для разработки
@@ -36,10 +35,4 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname)));
 
 console.log(`Server is running on port ${PORT}`);
-server.listen(PORT, () => {
-  console.log(`✅ Сервер запущен на порту ${PORT}`);
-  console.log(
-    `📡 Socket.io endpoint: http://localhost:${PORT}/socket.io/socket.io.js`,
-  );
-  console.log(`🌐 WebSocket endpoint: ws://localhost:${PORT}`);
-});
+server.listen(PORT);
