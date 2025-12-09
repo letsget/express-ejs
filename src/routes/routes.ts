@@ -8,6 +8,7 @@ import {
   resolveBookByIndex,
   handleAddNewBookMiddleware,
 } from "../middleware";
+import { commentService } from "../services/comments-service";
 
 router.get(ROUTER_PATHS.MAIN, (request: Request, response: Response) => {
   response.render(BOOK_VIEW.HOME, {
@@ -48,9 +49,13 @@ router.get(
       locals: { bookIndex },
     } = response;
 
+    // Получаем комментарии через наш сервис
+    const comments = commentService.getComments(library[bookIndex].id);
+
     response.render(BOOK_VIEW.VIEW, {
       title: library[bookIndex].title,
       book: library[bookIndex],
+      comments: comments,
     });
   },
 );

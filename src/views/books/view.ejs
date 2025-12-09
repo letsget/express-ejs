@@ -72,4 +72,10 @@
 </div>
 
 
+<%- include('../layout/comments', {
+    comments: typeof comments !== 'undefined' ? comments : [],
+    bookId: book.id
+}) %>
+
+
 <%- include('../layout/layout-end') %>

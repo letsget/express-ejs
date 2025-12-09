@@ -6,5 +6,16 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js" defer></script>
+<script>
+    console.log('🔧 layout-end: Socket.io загружен?', typeof io !== 'undefined');
+    console.log('🔧 layout-end: io =', typeof io);
+
+    // Принудительно делаем io глобальным на всякий случай
+    if (typeof io !== 'undefined') {
+        window.io = io;
+        console.log('✅ io установлен в window');
+    }
+</script>
 </body>
 </html>

@@ -1,0 +1,274 @@
+<!-- Компонент комментариев (вставляется через include) -->
+<div class="comments-section mt-5 pt-4 border-top">
+    <!-- Форма добавления комментария -->
+    <div class="comment-form card mb-4">
+        <div class="card-body">
+            <h3 class="card-title mb-4">Добавить комментарий</h3>
+
+            <form id="commentForm">
+                <div class="mb-3">
+                    <label for="commentUsername" class="form-label">Ваше имя</label>
+                    <input type="text"
+                           class="form-control"
+                           id="commentUsername"
+                           placeholder="Введите ваше имя"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="commentText" class="form-label">Комментарий</label>
+                    <textarea class="form-control"
+                              id="commentText"
+                              rows="3"
+                              placeholder="Ваш комментарий..."
+                              required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Отправить комментарий
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список комментариев -->
+    <div class="comments-list">
+        <h4 class="mb-3 d-flex align-items-center">
+            Комментарии
+            <span class="badge bg-secondary ms-2" id="commentsCount">0</span>
+        </h4>
+
+        <div id="commentsContainer">
+            <!-- Комментарии будут добавляться динамически -->
+            <% if (comments && comments.length > 0) { %>
+                <% comments.forEach(function(comment) { %>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-subtitle mb-1 text-primary">
+                                    <%= comment.username %>
+                                </h6>
+                                <small class="text-muted">
+                                    <%= comment.timestamp ? new Date(comment.timestamp).toLocaleString('ru-RU') : 'Только что' %>
+                                </small>
+                            </div>
+                            <p class="card-text mb-0"><%= comment.text %></p>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="alert alert-info">
+                    Пока нет комментариев. Будьте первым!
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Socket.io скрипт для комментариев -->
+<script>
+    // Функция для получения bookId из URL
+    function getBookIdFromUrl() {
+        const path = window.location.pathname;
+        const match = path.match(/\/books\/(\d+)/);
+        return match ? match[1] : 'default';
+    }
+
+    // Основная функция инициализации
+    function initComments() {
+        console.log('✅ Socket.io доступен!');
+
+        const bookId = getBookIdFromUrl();
+        console.log('📖 Book ID:', bookId);
+
+        const socket = io({
+            query: { bookId: bookId }
+        });
+
+        const commentForm = document.getElementById('commentForm');
+        const usernameInput = document.getElementById('commentUsername');
+        const commentInput = document.getElementById('commentText');
+        const commentsContainer = document.getElementById('commentsContainer');
+        const commentsCount = document.getElementById('commentsCount');
+
+        // Отладка подключения
+        socket.on('connect', () => {
+            console.log('✅ Подключен к серверу комментариев, Socket ID:', socket.id);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('🔌 Отключен от сервера');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('❌ Ошибка подключения:', error);
+        });
+
+        // Создание HTML для комментария
+        function createCommentElement(comment) {
+            const div = document.createElement('div');
+            div.className = 'card mb-3';
+
+            // Определяем, мой ли это комментарий
+            const isMyComment = comment.socketId === socket.id;
+            if (isMyComment) {
+                div.classList.add('border-primary', 'border-2');
+            }
+
+            div.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-subtitle mb-1 text-primary">
+                            ${escapeHtml(comment.username)}
+                            ${isMyComment ? '<span class="badge bg-info ms-2">Вы</span>' : ''}
+                        </h6>
+                        <small class="text-muted">
+                            ${comment.timestamp ? new Date(comment.timestamp).toLocaleString('ru-RU') : 'Только что'}
+                        </small>
+                    </div>
+                    <p class="card-text mb-0">${escapeHtml(comment.text)}</p>
+                </div>
+            `;
+            return div;
+        }
+
+        // Защита от XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Добавление комментария в список
+        function addCommentToUI(comment) {
+            console.log('➕ Добавляем комментарий в UI:', comment.username);
+
+            if (!commentsContainer) {
+                console.error('❌ commentsContainer не найден');
+                return;
+            }
+
+            const commentElement = createCommentElement(comment);
+
+            // Убираем алерт "нет комментариев" если он есть
+            const alertElement = commentsContainer.querySelector('.alert');
+            if (alertElement) {
+                commentsContainer.removeChild(alertElement);
+            }
+
+            // Добавляем в начало списка
+            commentsContainer.insertBefore(commentElement, commentsContainer.firstChild);
+
+            // Обновляем счетчик
+            if (commentsCount) {
+                const currentCount = parseInt(commentsCount.textContent) || 0;
+                commentsCount.textContent = currentCount + 1;
+            }
+
+            // Анимация появления
+            commentElement.style.opacity = '0';
+            commentElement.style.transform = 'translateY(-10px)';
+
+            setTimeout(() => {
+                commentElement.style.transition = 'all 0.3s ease';
+                commentElement.style.opacity = '1';
+                commentElement.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        // Обработка отправки формы
+        if (commentForm) {
+            commentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('📝 Отправка формы...');
+
+                const username = usernameInput.value.trim();
+                const text = commentInput.value.trim();
+
+                if (!username || !text) {
+                    alert('Пожалуйста, заполните все поля');
+                    return;
+                }
+
+                console.log('📤 Отправляю комментарий:', { username, text, bookId });
+
+                // Отправляем на сервер
+                socket.emit('add-new-comment', {
+                    username: username,
+                    text: text,
+                    bookId: bookId
+                });
+
+                // Очищаем поле комментария
+                commentInput.value = '';
+                commentInput.focus();
+
+                console.log('✅ Комментарий отправлен');
+            });
+        }
+
+        // ============ СОБЫТИЯ ОТ СЕРВЕРА ============
+
+        // Загрузка всех комментариев при подключении
+        socket.on('load-all-comments', function(comments) {
+            console.log('📥 Получены комментарии:', comments.length, 'шт.');
+
+            // Обновляем счетчик
+            if (commentsCount) {
+                commentsCount.textContent = comments.length;
+            }
+
+            // Очищаем контейнер
+            if (commentsContainer) {
+                commentsContainer.innerHTML = '';
+
+                // Если нет комментариев - показываем алерт
+                if (comments.length === 0) {
+                    commentsContainer.innerHTML = '<div class="alert alert-info">Пока нет комментариев. Будьте первым!</div>';
+                    return;
+                }
+
+                // Добавляем все комментарии
+                comments.forEach(comment => {
+                    const element = createCommentElement(comment);
+                    commentsContainer.appendChild(element);
+                });
+            }
+        });
+
+        // ★★★ ЕДИНОЕ СОБЫТИЕ ДЛЯ ВСЕХ КОММЕНТАРИЕВ ★★★
+        socket.on('new-comment', function(comment) {
+            console.log('💬 Получен новый комментарий:', comment);
+
+            // Проверяем что комментарий для этой книги
+            if (comment.bookId === bookId || comment.bookId === String(bookId)) {
+                console.log('✅ Добавляем комментарий в UI');
+                addCommentToUI(comment);
+            } else {
+                console.log('❌ Комментарий для другой книги, игнорируем');
+            }
+        });
+
+        // Обработка ошибок от сервера
+        socket.on('error', function(error) {
+            console.error('⚠️ Ошибка от сервера:', error);
+            alert('Ошибка: ' + error);
+        });
+
+        // Запрашиваем комментарии при подключении
+        console.log('🔄 Запрашиваю комментарии...');
+        socket.emit('request-comments');
+
+        // Логируем все события для отладки
+        socket.onAny((eventName, ...args) => {
+            console.log(`🎯 Событие "${eventName}":`, args.length > 0 ? args[0] : 'без данных');
+        });
+    }
+
+    // Ждем полной загрузки страницы
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initComments);
+    } else {
+        initComments();
+    }
+</script>
